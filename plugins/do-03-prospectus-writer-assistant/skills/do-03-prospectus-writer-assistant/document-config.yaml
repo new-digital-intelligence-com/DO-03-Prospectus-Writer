@@ -1,0 +1,227 @@
+# DO-03 pack configuration — what the component column cannot express.
+#
+# The column says "Word Document = yes" and "Document Compare = yes". It does not say
+# whose template, what the sections are, which of them may be cut, what may never be
+# invented, or where the authoritative facts live. That is all here.
+
+# ---------------------------------------------------------------------------
+# SCOPE DECISION — read this before changing anything else.
+#
+# "Prospectus" has a statutory meaning for financial, insurance, medical and legal
+# products: prescribed content, a filing regime, and liability for what it says.
+# The catalogue entry, the role spec and the business case all describe something
+# else — a persuasive client-ready offering document produced by a communications
+# team to a brand voice guide.
+#
+# v0.1 is scoped to the marketing offering document, on Oleg's decision of
+# 2026-09-01. The employee refuses the regulated case rather than attempting it.
+# That refusal is a Phase 0 gate, not a disclaimer at the end.
+#
+# REDUCTIONS from the role spec, both deliberate and both stated in the skill:
+#   1. No product-catalog MCP. The role spec names a `custom-mcp` over a product
+#      catalog API as "single source of truth for specs, terms and figures", and
+#      hangs its central guardrail on it. No such server exists in the tenant, so
+#      the authoritative source is whatever documents the user supplies, and the
+#      consistency gate checks the draft against those files instead.
+#   2. No approval-workflow routing. The role spec routes drafts into an approval
+#      system via Zapier and notifies reviewers in Slack. Neither is wired for this
+#      employee, so it delivers a watermarked draft and names who must sign it off.
+#
+# NOTE on the architecture sheet: it sets Knowledge Validation Agent ("Ask back") to
+# `no` for DO-03, while the role spec's step 1.4 is "list any facts the sources do not
+# cover and ask the owner before writing around the gaps". The archetype's Phase 2
+# already stops and batches the gaps, so the behaviour is present regardless — but the
+# sheet and the spec disagree and the sheet is wrong.
+# ---------------------------------------------------------------------------
+
+template:
+  supplied_by: user                  # no NDI default, and no client default
+  ask_when_missing: true
+  accepted_formats: [docx, dotx]
+  fixture:                           # test data only — never a runtime default
+    name: Offering_Document_Template.docx
+    location: By AI Employee/DO-03 Prospectus Writer Assistant/Templates
+    note: >-
+      For the eval suite, so cases have something to fill. Using it at runtime would
+      put a stranger's layout in front of a client.
+
+fill_method: token_replace
+token_pattern: "{{NAME}}"
+
+primary_format: docx
+
+# Components the architecture sheet enables that are wrong for this employee. Each
+# needs a reason; the builder refuses an override without one and prints it in the
+# build log next to the component it suppressed.
+#
+# Both of these come from the sheet's "User Interaction Channels" group, where the
+# entries are read as artefacts because that is the only reading that says anything
+# actionable — the same confusion already noted against MS Excel in the dictionary.
+component_overrides:
+  MS Excel: >-
+    DO-03 produces no workbook. The dictionary entry injects "the deliverable is an
+    Excel workbook, not prose", which is false for this employee and contradicts
+    Word Document in the same bundle.
+  Google Docs: >-
+    A Google Doc is a review convenience here, not the deliverable — offered only when
+    reviewers want to comment in place. Injecting "the deliverable is a native Google
+    Doc" alongside Word Document gives the skill two different answers to what it is
+    producing.
+
+# Slot groups the fixture exposes. A user's own template will differ — the skill
+# discovers tokens from the supplied file rather than trusting this list.
+slots:
+  cover:      [OFFERING_NAME, AUDIENCE_NAME, DOCUMENT_DATE, VERSION_LABEL]
+  summary:    [EXEC_SUMMARY, HEADLINE_1, HEADLINE_2, HEADLINE_3]
+  audience:   [AUDIENCE_DESCRIPTION, AUDIENCE_NEED_1, AUDIENCE_NEED_2, AUDIENCE_NEED_3]
+  offering:   [WHAT_IT_IS, HOW_IT_WORKS_1, HOW_IT_WORKS_2, HOW_IT_WORKS_3,
+               COMPONENT_1_NAME, COMPONENT_1_TEXT, COMPONENT_2_NAME, COMPONENT_2_TEXT,
+               COMPONENT_3_NAME, COMPONENT_3_TEXT]
+  benefits:   [BENEFIT_1_TITLE, BENEFIT_1_TEXT, BENEFIT_1_EVIDENCE,
+               BENEFIT_2_TITLE, BENEFIT_2_TEXT, BENEFIT_2_EVIDENCE,
+               BENEFIT_3_TITLE, BENEFIT_3_TEXT, BENEFIT_3_EVIDENCE]
+  specifics:  [TIER_1_NAME, TIER_1_SCOPE, TIER_1_BASIS,
+               TIER_2_NAME, TIER_2_SCOPE, TIER_2_BASIS,
+               TIER_3_NAME, TIER_3_SCOPE, TIER_3_BASIS]
+  terms:      [TERM_LENGTH, NOTICE_PERIOD, PRICING_BASIS, MINIMUM_ENGAGEMENT,
+               SERVICE_LEVEL_SUMMARY]
+  evidence:   [CASE_1_CLIENT, CASE_1_WHAT, CASE_1_RESULT,
+               CASE_2_CLIENT, CASE_2_WHAT, CASE_2_RESULT]
+  next_steps: [NEXT_STEP_1, NEXT_STEP_2, NEXT_STEP_3]
+  contact:    [CONTACT_NAME, CONTACT_ROLE, CONTACT_EMAIL, CONTACT_PHONE]
+  legal:      [DISCLAIMER, VALIDITY_DATE]
+
+# Required ∪ droppable covers every group above, deliberately. DO-23's eval finding
+# F5 was that two of its groups appeared in neither list while its sizing rule
+# required dropping both, so a case had to guess. Checked here: 11 groups, 11 classified.
+required_groups:  [cover, summary, offering, benefits, terms, contact, legal]
+droppable_groups: [audience, specifics, evidence, next_steps]
+
+never_invent:
+  - figures, rates, prices, fees, discounts, returns, volumes and performance claims
+  - specifications, service tiers, inclusions and exclusions
+  - contractual terms — term length, notice period, minimum engagement, service levels
+  - named client references and their results, and any reference without stated
+    naming permission
+  - certifications, accreditations, awards and compliance statements
+  - availability, launch and validity dates
+  - contact names, roles, email addresses and phone numbers
+
+output:
+  naming: "YYYY-MM-DD_<Offering>_Offering-Document_v<N>.docx"
+  archive_to: By AI Employee/DO-03 Prospectus Writer Assistant/Sample Output
+  watermark_until_signed_off: true
+
+brief_fields:
+  - The offering — what it is, and who owns it internally
+  - "The audience: who reads this, and their level of expertise in the subject"
+  - The length constraint in pages, or a statement that there is none
+  - The source documents every figure, specification and term must trace to
+  - The brand voice guide, or a statement that none exists
+  - Which client references may be **named**, and which may not
+  - The terms to state — term, notice, minimum engagement, pricing basis, service levels
+  - The required disclaimer and the validity date
+  - Contact details for the closing section
+  - The deadline, and who signs it off
+
+sizing_rule: >-
+  The stated page budget governs, not the template's extent.
+
+pack_values:
+  PACK_NEVER_INVENT: >-
+    figures, rates, prices, fees, returns, volumes and performance claims;
+    specifications, service tiers, inclusions and exclusions; contractual terms — term
+    length, notice period, minimum engagement, service levels; named client references
+    and their results, and any reference without stated naming permission;
+    certifications, accreditations and awards; availability, launch and validity dates;
+    contact names, roles and email addresses
+
+  PACK_TEMPLATE_INTAKE: |-
+    The template is **supplied by the user** — there is no NDI default and no client
+    default. Ask for it if it was not attached, and stop until it arrives. Accepted
+    formats: `docx`, `dotx`.
+
+    Do not fall back to `Offering_Document_Template.docx` in
+    `By AI Employee/DO-03 Prospectus Writer Assistant/Templates`. That file exists for
+    the eval suite; using it at runtime puts a stranger's layout in front of a client.
+
+    **Settle three things here, and stop until all three are answered.** Each of them
+    invalidates the whole document if it surfaces later.
+
+    1. **Is this a regulated offering?** This employee writes *marketing offering
+       documents*. If the subject is a financial, insurance, medical, legal or other
+       regulated product — anything where "prospectus" carries a statutory meaning,
+       prescribed content or a filing obligation — say so plainly and stop. Name the
+       compliance owner as the next step. Producing a persuasive document for a
+       regulated offering is not a smaller version of the right job; it is a different
+       and riskier one.
+
+    2. **Where do the authoritative facts live?** Ask for the source documents — spec
+       sheets, price lists, terms, prior approved material. Every figure, specification
+       and term in the finished document must trace to one of them, and Phase 5 checks
+       that mechanically. There is no product-catalog system to fall back on. If the
+       user has no sources, say that the document can only restate what they tell you
+       in this conversation and that nothing in it will be verifiable.
+
+    3. **Is there a brand voice guide?** Ask for it. If none exists, say so and follow
+       the template's own existing prose — do not infer a voice from the template's
+       fixed text and present the result as house style.
+
+    Also check the **language** of the template's fixed text against the audience's
+    language, and raise a mismatch now. Nothing later in the workflow catches it, and
+    the document comes out bilingual — this is DO-23's eval finding F4, and it is
+    cheaper to prevent here than to discover at delivery.
+
+  PACK_TOKEN_PATTERN: "{{NAME}}"
+
+  PACK_BRIEF_FIELDS: |-
+    - The offering — what it is, and who owns it internally
+    - The audience: who reads this, and their level of expertise in the subject
+    - The length constraint in pages, or a statement that there is none
+    - The source documents every figure, specification and term must trace to
+    - The brand voice guide, or a statement that none exists
+    - Which client references may be **named**, and which may not
+    - The terms to state — term, notice, minimum engagement, pricing basis, service levels
+    - The required disclaimer and the validity date
+    - Contact details for the closing section
+    - The deadline, and who signs it off
+
+  PACK_SIZING_RULE: |-
+    The stated page budget governs.
+
+    - **One or two pages** — cover, summary, offering, benefits, terms, contact, legal.
+      Nothing else. This is the common request and the template will be longer than it.
+    - **Three to eight pages** — add `audience` and `evidence`.
+    - **More than eight** — add `specifics` and `next_steps`.
+
+    A stated preference overrides the arithmetic in both directions: "keep it to two
+    pages" means two pages with a generous template, and "they want the detail" means
+    the full sequence with a short one. **If no budget was stated, ask.** Defaulting to
+    the template's full extent is how a two-page request becomes a twelve-page document
+    nobody reads.
+
+  PACK_REQUIRED_GROUPS: cover, summary, offering, benefits, terms, contact, legal
+
+  PACK_DROPPABLE_GROUPS: audience, specifics, evidence, next_steps
+
+  PACK_FILL_COMMAND: |-
+    ```bash
+    python3 scripts/fill_docx.py TEMPLATE VALUES.json OUTPUT \
+        [--drop-slots TOKEN,TOKEN] [--drop-sections "Heading","Heading"]
+    ```
+
+    Run it with `--list-tokens` first to discover what the supplied template actually
+    exposes. Read the `docx` skill's SKILL.md before touching the file.
+
+  PACK_PRUNE_RULE: >-
+    A dropped slot's whole paragraph is deleted, and if that paragraph was the only
+    text in a table row, the row goes with it — clearing the text alone leaves an empty
+    bullet, an empty table row, or a heading with nothing beneath it, all of which
+    reach the reader. `--drop-sections` takes the section's **heading text**, not an
+    ordinal, and removes that heading plus everything under it until the next heading
+    of the same or higher level; that keeps the group-to-section mapping in this config
+    rather than in the operator's head, which was DO-23's eval finding F6.
+
+  PACK_NAMING: YYYY-MM-DD_<Offering>_Offering-Document_v<N>.docx
+
+  PACK_ARCHIVE_TO: By AI Employee/DO-03 Prospectus Writer Assistant/Sample Output

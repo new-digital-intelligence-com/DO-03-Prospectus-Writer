@@ -1,0 +1,9 @@
+{
+  "name": "do-03-prospectus-writer-assistant",
+  "displayName": "DO-03 — Prospectus Writer Assistant",
+  "description": "NDI's DO-03 AI Employee. Produces a marketing offering document on the user's own Word template: discovers the template's slots, sizes the document to the stated page budget by dropping whole sections rather than padding, and checks every figure in the draft against the supplied source documents — reporting any figure that has no source instead of choosing a value.",
+  "author": { "name": "New Digital Intelligence" },
+  "repository": "https://github.com/new-digital-intelligence-com/DO-03-Prospectus-Writer",
+  "license": "UNLICENSED",
+  "keywords": ["offering-document", "prospectus", "docx", "marketing", "consistency", "ndi", "do-03"]
+}

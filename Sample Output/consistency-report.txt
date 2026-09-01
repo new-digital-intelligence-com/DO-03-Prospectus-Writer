@@ -1,0 +1,15 @@
+2026-09-01_Meridian-Endpoint-Care_Offering-Document_v1.docx: 7 distinct figures, 3 distinct dates, 12 distinct names, 1 distinct emails, 4 distinct fields, 3 distinct units
+
+VARIANT — 1 item(s) written more than one way:
+  [name] pricing basis
+      "Pricing Basis"  in: Pricing Basis: Per endpoint per month, billed monthly
+      "Pricing basis"  in: One predictable line in the budget
+
+REVIEW — 1 unit(s) carry more than one value. Some of these are correct (a before-and-after pair shares its unit); read them, do not assume:
+  endpoint: 250 [Executive summary], 300 [Minimum Engagement: 300 endpoints]
+
+UNSOURCED — 1 figure(s)/date(s) in the draft appear in no supplied source:
+  [figure] 300  as written: 300
+      in: Minimum Engagement: 300 endpoints
+
+Each of these was written rather than supplied. Report them to the owner and get a source, or remove the claim. Do not choose a value.
